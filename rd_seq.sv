@@ -161,3 +161,68 @@ class rd_one_read_seq extends rd_seq;
     finish_item(req);
   endtask
 endclass
+
+// Phase 1: read attempts while the buffer is empty -> underflow should set.
+// Checks the flag is 0 before, and 1 after the attempts.
+class rd_underflow_seq extends rd_seq;
+  `uvm_object_utils(rd_underflow_seq)
+
+  virtual DUT_intf vif;
+
+  function new(string name = "rd_underflow_seq");
+    super.new(name);
+  endfunction
+
+  task drive(bit val, int unsigned n);
+    repeat (n) begin
+      req = rd_item::type_id::create("req");
+      start_item(req);
+      req.ready = val;
+      finish_item(req);
+    end
+  endtask
+
+  task body();
+    if (!uvm_config_db#(virtual DUT_intf)::get(m_sequencer, "", "vif", vif))
+      `uvm_fatal("RD_SEQ", "virtual interface not set")
+
+    drive(0, 2);   // let the reset values settle
+    if (vif.monitor_cb.underflow !== 1'b0)
+      `uvm_error("RD_SEQ", $sformatf("underflow expected 0 before reads, got %b", vif.monitor_cb.underflow))
+
+    drive(1, 10);  // m_ready high while empty: nothing to read
+    drive(0, 2);   // let the flag register
+    if (vif.monitor_cb.underflow !== 1'b1)
+      `uvm_error("RD_SEQ", "underflow did not set after reads on an empty buffer")
+    if (vif.monitor_cb.overflow !== 1'b0)
+      `uvm_error("RD_SEQ", "overflow set unexpectedly during the underflow phase")
+  endtask
+endclass
+
+
+// Phase 2: m_ready held low while the writer overfills the buffer -> overflow should set.
+class rd_overflow_check_seq extends rd_seq;
+  `uvm_object_utils(rd_overflow_check_seq)
+
+  virtual DUT_intf vif;
+  int unsigned hold_cycles = 50;   // long enough to fill 16 entries and hit the extra writes
+
+  function new(string name = "rd_overflow_check_seq");
+    super.new(name);
+  endfunction
+
+  task body();
+    if (!uvm_config_db#(virtual DUT_intf)::get(m_sequencer, "", "vif", vif))
+      `uvm_fatal("RD_SEQ", "virtual interface not set")
+
+    repeat (hold_cycles) begin
+      req = rd_item::type_id::create("req");
+      start_item(req);
+      req.ready = 1'b0;
+      finish_item(req);
+    end
+
+    if (vif.monitor_cb.overflow !== 1'b1)
+      `uvm_error("RD_SEQ", "overflow did not set after writes into a full buffer")
+  endtask
+endclass

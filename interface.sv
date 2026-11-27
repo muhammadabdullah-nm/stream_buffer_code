@@ -15,9 +15,13 @@ interface DUT_intf #(
     logic              m_valid;
     logic [DATA_W-1:0] m_data;
 
-    logic [CNT_W:0]    count;          // was [CNT_W-1:0], now matches the RTL port
-    logic              almost_full;    // new
-    logic              almost_empty;   // new
+    logic [CNT_W:0]    count;          
+    logic              almost_full;   
+    logic              almost_empty;   
+  
+    logic              overflow;
+    logic              underflow;
+    logic              clr_err = 1'b0;
 
     clocking driver_cb @(posedge clk);
         default input #1 output #1;
@@ -28,6 +32,7 @@ interface DUT_intf #(
         input  m_valid;
         input  m_data;
         input  count;
+        output clr_err;
     endclocking
 
     clocking monitor_cb @(posedge clk);
@@ -40,7 +45,9 @@ interface DUT_intf #(
         input m_data;
         input count;
         input almost_full;             
-        input almost_empty;            
+        input almost_empty;    
+      	input overflow;
+        input underflow;
     endclocking
 
 endinterface

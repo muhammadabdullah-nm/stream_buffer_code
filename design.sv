@@ -11,7 +11,10 @@ module stream_buf #(
              output logic [DATA_W-1:0] m_data,
              output logic [$clog2(DEPTH+1):0] count,
              output logic almost_full,
-             output logic almost_empty
+             output logic almost_empty,
+             output logic overflow,
+             output logic underflow,
+             input  logic clr_err
 			);
 
   	logic [3:0] wptr, rptr;
@@ -34,6 +37,8 @@ module stream_buf #(
               	m_data <= '0;
               	almost_empty <= '0;
               	almost_full <= '0;
+              	overflow <= '0;
+            	underflow <= '0;
             end
 
             else if(s_valid && s_ready)
@@ -58,6 +63,15 @@ module stream_buf #(
         		almost_empty <= 0;
         		almost_full <=0;
             end
+          
+          if(clr_err) begin
+            overflow <= '1;
+            underflow <= '1;
+          end
+          
+          if(full && s_valid) overflow<='1;
+          else if(empty && m_valid) underflow<='1;
+
         end
   
 

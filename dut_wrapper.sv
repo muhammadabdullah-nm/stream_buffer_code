@@ -17,7 +17,10 @@ module dut_wrapper #(
         .m_data       (intf.m_data),
         .count        (intf.count),
         .almost_full  (intf.almost_full),
-        .almost_empty (intf.almost_empty)
+      	.almost_empty (intf.almost_empty),
+        .overflow     (intf.overflow),
+        .underflow    (intf.underflow),
+        .clr_err      (intf.clr_err)
     );
 
 endmodule

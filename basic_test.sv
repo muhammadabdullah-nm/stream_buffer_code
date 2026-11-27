@@ -3,7 +3,7 @@ class basic_test extends uvm_test;
 
   stream_env env;
 
-  int unsigned testnumber = 5;   // default test; override with +TESTNUM=<n>
+  int unsigned testnumber = 6;   // default test; override with +TESTNUM=<n>
 
   function new(string name = "basic_test", uvm_component parent = null);
     super.new(name, parent);
@@ -103,7 +103,27 @@ class basic_test extends uvm_test;
     end
     r3.start(env.rd_agt.sqr);    // 5. drain so the scoreboard sees every item read
   endtask
-  // ---------------------------------------------------------------
+  //
+  
+  // 10: underflow / overflow flag test
+  task flow_flags();
+    rd_underflow_seq      r1 = rd_underflow_seq     ::type_id::create("r1");
+    wr_keep_writing_seq   w  = wr_keep_writing_seq  ::type_id::create("w");
+    rd_overflow_check_seq r2 = rd_overflow_check_seq::type_id::create("r2");
+    rd_drain_seq          r3 = rd_drain_seq         ::type_id::create("r3");
+
+    w.extra = 10;                 // 10 writes attempted after the buffer is full
+
+    r1.start(env.rd_agt.sqr);     // 1. reads on an empty buffer
+    fork
+      w.start(env.wr_agt.sqr);    // 2. write until full and keep writing
+      begin
+        r2.start(env.rd_agt.sqr); //    m_ready low, check overflow
+        r3.start(env.rd_agt.sqr); // 3. drain so the stuck writes complete
+      end
+    join
+  endtask
+  //---------------------------------------------------------------
   // run_phase: pick the test
   // ---------------------------------------------------------------
   task run_phase(uvm_phase phase);
@@ -116,6 +136,7 @@ class basic_test extends uvm_test;
       3: 		full_empty_flag();
       4: 		keep_writing();
       5: 		toggle_almost();
+      6: 		flow_flags();
       default: `uvm_error("TEST", $sformatf("Invalid testnumber %0d", testnumber))
     endcase
 
