@@ -1,5 +1,5 @@
 // Publishes a rd_item for every accepted read (m_valid && m_ready).
-// Also checks rule 4: m_data stable while m_valid=1 and m_ready=0.
+//  checks rule: m_data stable while m_valid=1 and m_ready=0.
 class rd_monitor extends uvm_monitor;
   `uvm_component_utils(rd_monitor)
 
@@ -31,7 +31,7 @@ class rd_monitor extends uvm_monitor;
         continue;
       end
 
-      // rule 4 check
+
       if (stalled) begin
         if (vif.monitor_cb.m_valid !== 1'b1)
           `uvm_error("RD_MON", "m_valid dropped while m_ready was low")

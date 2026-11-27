@@ -1,5 +1,5 @@
 module stream_buf #(
-	parameter DATA_W=32
+	parameter DATA_W=32,
 	parameter DEPTH=16
 	)
   			(input  logic 			   clk, rst_n, 
@@ -9,44 +9,46 @@ module stream_buf #(
 			 input  logic 			   m_ready,
 			 output logic 			   m_valid,
              output logic [DATA_W-1:0] m_data,
-             output logic [clog2(DEPTH+1):0] count
+             output logic [$clog2(DEPTH+1):0] count
 			);
 
-// logic [2:0] wptr, rptr;
-logic [DATA_W-1:0] mem [DEPTH:0]; 
-logic full, empty;
+  	logic [3:0] wptr, rptr;
+    logic [DATA_W-1:0] mem [DEPTH-1:0]; 
+	logic full, empty;
   
-assign full=(count==DEPTH)?1:0;
-assign empty=(count==0)?1:0;
+	assign full=(count==DEPTH)?1:0;
+	assign empty=(count==0)?1:0;
 
-assign s_ready = (full==1)?1:0;
-assign m_valid = (!empty)?1:0;
+	assign s_ready = !full;
+	assign m_valid = (!empty)?1:0;
 
-always_ff@(posedge clk)
-	begin
-		if(!rst_n)
-		begin
-			// for(int i=0;i<8; i++)
-			// begin
-			// 	mem[i]<=0;
-			// 	end
-			full  <= 0;
-			empty <= 0;
-			count <= 0;
-		end
-		
-		else if(s_valid && s_ready)
-		begin
-			mem[count]<=s_data;
-			count<=count+1;
-		end
-		
-		else if(m_valid && m_ready)
-		begin
-			m_data<=mem[count];
-			count<=count-1;
-		end
-	end
-endmodule
+    always_ff@(posedge clk)
+        begin
+            if(!rst_n)
+            begin
+              	wptr <= 0;
+                rptr <= 0;
+                count <= 0;
+              	m_data <= '0;
+            end
+
+            else if(s_valid && s_ready)
+            begin
+              if(count==DEPTH) wptr <= 0;
+              else wptr<=wptr+1;
+              	mem[wptr]<=s_data;
+                count<=count+1;
+            end
+
+            else if(m_valid && m_ready)
+            begin
+              if(rptr == DEPTH) rptr <= 0;
+              else rptr<=rptr;
+                m_data<=mem[rptr];
+              	rptr<=rptr+1;
+                count<=count-1;
+            end
+        end
+    endmodule
 				
 		
