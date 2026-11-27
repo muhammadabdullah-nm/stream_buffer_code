@@ -1,32 +1,34 @@
-`include "uvm_macros.svh"
-import uvm_pkg::*;
-`include "interface.sv"
+`timescale 1ns/1ps
+
+`include "dut_intf.sv"
 `include "dut_wrapper.sv"
-`include "my_test.sv"
+`include "stream_buf_pkg.sv"
 
+module tb_top;
+  import uvm_pkg::*;
+  import stream_buf_pkg::*;
+  `include "uvm_macros.svh"
 
-module tb_TOP;
-bit clk;
-bit rst;
-  
-always #10 clk=~clk;
+  logic clk = 0;
+  logic rst_n;
 
-initial begin
- rst=1;
-#5 rst=0; 
-end
+  always #5 clk = ~clk;
 
-DUT_intf dut_if1(clk,rst);
-dut_wrapper dut_w(.intf(dut_if1));
-initial begin
+  initial begin
+    rst_n = 0;
+    repeat (5) @(posedge clk);
+    #1 rst_n = 1;
+  end
+
+  DUT_intf    intf (clk, rst_n);
+  dut_wrapper dut  (intf);
+
+  initial begin
+    uvm_config_db#(virtual DUT_intf)::set(null, "*", "vif", intf);
+    run_test("basic_test");
+  end
+  initial begin
   $dumpfile("dump.vcd");
-  $dumpvars(0, tb_TOP);   // use your top-level testbench module name
-end
-
-initial begin
-  uvm_config_db#(virtual DUT_intf)::set(uvm_root::get(),"*","vif",dut_if1);
-run_test("my_test");
-  
-  
+  $dumpvars(0, tb_top);   // use your top-level testbench module name
 end
 endmodule
