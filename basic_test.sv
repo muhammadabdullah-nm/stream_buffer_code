@@ -3,7 +3,7 @@ class basic_test extends uvm_test;
 
   stream_env env;
 
-  int unsigned testnumber = 4;   // default test; override with +TESTNUM=<n>
+  int unsigned testnumber = 5;   // default test; override with +TESTNUM=<n>
 
   function new(string name = "basic_test", uvm_component parent = null);
     super.new(name, parent);
@@ -82,6 +82,27 @@ class basic_test extends uvm_test;
     join
   endtask
 
+    // almost_full / almost_empty flag test
+  task toggle_almost();
+    wr_almost_full_seq  w1 = wr_almost_full_seq ::type_id::create("w1");
+    rd_almost_empty_seq r1 = rd_almost_empty_seq::type_id::create("r1");
+    wr_to_count_seq     w2 = wr_to_count_seq    ::type_id::create("w2");
+    rd_one_read_seq     r2 = rd_one_read_seq    ::type_id::create("r2");
+    wr_fill_seq         w3 = wr_fill_seq        ::type_id::create("w3");
+    rd_drain_seq        r3 = rd_drain_seq       ::type_id::create("r3");
+
+    w3.depth = 1;                // wr_fill_seq with depth 1 = a single write
+    w2.target = 3;
+
+    w1.start(env.wr_agt.sqr);    // 1. write until almost_full
+    r1.start(env.rd_agt.sqr);    // 2. read until almost_empty
+    w2.start(env.wr_agt.sqr);    // 3. raise count to 3 (just above the almost_empty threshold)
+    repeat (10) begin            // 4. one read, one write, repeated
+      r2.start(env.rd_agt.sqr);
+      w3.start(env.wr_agt.sqr);
+    end
+    r3.start(env.rd_agt.sqr);    // 5. drain so the scoreboard sees every item read
+  endtask
   // ---------------------------------------------------------------
   // run_phase: pick the test
   // ---------------------------------------------------------------
@@ -94,6 +115,7 @@ class basic_test extends uvm_test;
       2: 		write_back_to_back();
       3: 		full_empty_flag();
       4: 		keep_writing();
+      5: 		toggle_almost();
       default: `uvm_error("TEST", $sformatf("Invalid testnumber %0d", testnumber))
     endcase
 

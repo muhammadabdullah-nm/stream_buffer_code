@@ -9,7 +9,9 @@ module stream_buf #(
 			 input  logic 			   m_ready,
 			 output logic 			   m_valid,
              output logic [DATA_W-1:0] m_data,
-             output logic [$clog2(DEPTH+1):0] count
+             output logic [$clog2(DEPTH+1):0] count,
+             output logic almost_full,
+             output logic almost_empty
 			);
 
   	logic [3:0] wptr, rptr;
@@ -30,6 +32,8 @@ module stream_buf #(
                 rptr <= 0;
                 count <= 0;
               	m_data <= '0;
+              	almost_empty <= '0;
+              	almost_full <= '0;
             end
 
             else if(s_valid && s_ready)
@@ -48,7 +52,15 @@ module stream_buf #(
               	rptr<=rptr+1;
                 count<=count-1;
             end
+           if(count<=2) almost_empty <= 1;
+      		else if(count == DEPTH-2) almost_full <=1;
+      		else begin 
+        		almost_empty <= 0;
+        		almost_full <=0;
+            end
         end
+  
+
     endmodule
 				
 		

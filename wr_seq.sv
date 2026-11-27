@@ -90,3 +90,59 @@ class wr_keep_writing_seq extends wr_seq;
     end
   endtask
 endclass
+
+// Back-to-back writes until almost_full is seen
+class wr_almost_full_seq extends wr_seq;
+  `uvm_object_utils(wr_almost_full_seq)
+
+  virtual DUT_intf vif;
+  int unsigned max_items = 100;   // safety limit
+
+  function new(string name = "wr_almost_full_seq");
+    super.new(name);
+  endfunction
+
+  task body();
+    bit hit = 0;
+    if (!uvm_config_db#(virtual DUT_intf)::get(m_sequencer, "", "vif", vif))
+      `uvm_fatal("WR_SEQ", "virtual interface not set")
+
+    for (int i = 0; i < max_items && !hit; i++) begin
+      req = wr_item::type_id::create("req");
+      start_item(req);
+      if (!req.randomize(data)) `uvm_error("WR_SEQ", "randomize failed")
+      req.delay = 0;
+      finish_item(req);
+      if (vif.monitor_cb.almost_full === 1'b1) hit = 1;
+    end
+    if (!hit) `uvm_error("WR_SEQ", "almost_full never asserted")
+  endtask
+endclass
+
+
+// Back-to-back writes until count reaches 'target' (assumes no reads meanwhile)
+class wr_to_count_seq extends wr_seq;
+  `uvm_object_utils(wr_to_count_seq)
+
+  virtual DUT_intf vif;
+  int unsigned target = 3;
+
+  function new(string name = "wr_to_count_seq");
+    super.new(name);
+  endfunction
+
+  task body();
+    if (!uvm_config_db#(virtual DUT_intf)::get(m_sequencer, "", "vif", vif))
+      `uvm_fatal("WR_SEQ", "virtual interface not set")
+
+    while (vif.monitor_cb.count < target) begin
+      req = wr_item::type_id::create("req");
+      start_item(req);
+      if (!req.randomize(data)) `uvm_error("WR_SEQ", "randomize failed")
+      req.delay = 0;
+      finish_item(req);
+      // the sampled count is the value before this write, so +1 is the new count
+      if (vif.monitor_cb.count + 1 >= target) break;
+    end
+  endtask
+endclass

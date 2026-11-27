@@ -106,3 +106,58 @@ class rd_hold_low_seq extends rd_seq;
     end
   endtask
 endclass
+
+// m_ready high every cycle until almost_empty is seen, then m_ready low
+class rd_almost_empty_seq extends rd_seq;
+  `uvm_object_utils(rd_almost_empty_seq)
+
+  virtual DUT_intf vif;
+  int unsigned max_cycles = 100;   // safety limit
+
+  function new(string name = "rd_almost_empty_seq");
+    super.new(name);
+  endfunction
+
+  task body();
+    bit hit = 0;
+    if (!uvm_config_db#(virtual DUT_intf)::get(m_sequencer, "", "vif", vif))
+      `uvm_fatal("RD_SEQ", "virtual interface not set")
+
+    for (int i = 0; i < max_cycles && !hit; i++) begin
+      req = rd_item::type_id::create("req");
+      start_item(req);
+      req.ready = 1'b1;
+      finish_item(req);
+      if (vif.monitor_cb.almost_empty === 1'b1) hit = 1;
+    end
+    if (!hit) `uvm_error("RD_SEQ", "almost_empty never asserted")
+
+    // stop reading
+    req = rd_item::type_id::create("req");
+    start_item(req);
+    req.ready = 1'b0;
+    finish_item(req);
+  endtask
+endclass
+
+
+// one read: m_ready high for 1 cycle, then low for 1 cycle
+class rd_one_read_seq extends rd_seq;
+  `uvm_object_utils(rd_one_read_seq)
+
+  function new(string name = "rd_one_read_seq");
+    super.new(name);
+  endfunction
+
+  task body();
+    req = rd_item::type_id::create("req");
+    start_item(req);
+    req.ready = 1'b1;
+    finish_item(req);
+
+    req = rd_item::type_id::create("req");
+    start_item(req);
+    req.ready = 1'b0;
+    finish_item(req);
+  endtask
+endclass
