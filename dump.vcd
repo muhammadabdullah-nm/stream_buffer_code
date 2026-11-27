@@ -1,0 +1,183 @@
+$date
+	Fri Nov 27 02:12:18 2026
+$end
+
+$version
+	Synopsys VCS version X-2025.06-SP1_Full64
+$end
+
+$timescale
+	1ns
+$end
+
+$comment Csum: 1 db5e5306010cd4d2 $end
+
+
+$scope module tb_TOP $end
+$var reg 1 ! clk $end
+$var reg 1 " rst $end
+
+$scope begin unnamed$$_vcs_2 $end
+$upscope $end
+
+
+$scope begin unnamed$$_vcs_0 $end
+$upscope $end
+
+
+$scope begin unnamed$$_vcs_1 $end
+$upscope $end
+
+
+$scope begin unnamed$$_vcs_3 $end
+$upscope $end
+
+
+$scope module dut_if1 $end
+$var reg 1 # clk $end
+$var reg 1 $ rst $end
+$var reg 1 % wr_rd $end
+$var reg 1 & full $end
+$var reg 1 ' empty $end
+$var reg 8 ( D_in [7:0] $end
+$var reg 8 ) D_out [7:0] $end
+$upscope $end
+
+
+$scope module dut_w $end
+
+$scope module DUT $end
+$var reg 1 # clk $end
+$var reg 1 $ rst $end
+$var reg 1 % wr_rd $end
+$var reg 1 & full $end
+$var reg 1 ' empty $end
+$var reg 8 ( D_in [7:0] $end
+$var reg 8 ) D_out [7:0] $end
+$var reg 3 * wptr [2:0] $end
+$var reg 3 + rptr [2:0] $end
+
+$scope begin unnamed$$_0 $end
+$upscope $end
+
+$upscope $end
+
+$upscope $end
+
+$upscope $end
+
+$enddefinitions $end
+
+#0
+$dumpvars
+0!
+1"
+b000 +
+b000 *
+b00000000 )
+bxxxxxxxx (
+0#
+1$
+1'
+0&
+x%
+$end
+#5
+0"
+0$
+#10
+1!
+1#
+#11
+1%
+b11110111 (
+#20
+0!
+0#
+#30
+1!
+1#
+b001 *
+0'
+#31
+b10110101 (
+#40
+0!
+0#
+#50
+1!
+1#
+b010 *
+#51
+b00100101 (
+#60
+0!
+0#
+#70
+1!
+1#
+b011 *
+#71
+b11001001 (
+#80
+0!
+0#
+#90
+1!
+1#
+b100 *
+#91
+b11001111 (
+#100
+0!
+0#
+#110
+1!
+1#
+b101 *
+#111
+b10001100 (
+#120
+0!
+0#
+#130
+1!
+1#
+b110 *
+#131
+b00000111 (
+#140
+0!
+0#
+#150
+1!
+1#
+b111 *
+1&
+#151
+b01101010 (
+#160
+0!
+0#
+#170
+1!
+1#
+#171
+b10100110 (
+#180
+0!
+0#
+#190
+1!
+1#
+#191
+b00010000 (
+#200
+0!
+0#
+#210
+1!
+1#
+#220
+0!
+0#
